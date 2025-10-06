@@ -1,18 +1,23 @@
-FROM ubuntu:22.04
+# Базовый образ можно задать при сборке через --build-arg BASE=
+ARG BASE=ubuntu:22.04
+FROM ${BASE}
 
-# Установим питон, venv и git
+# Передача версии исходников (ветка или тег)
+ARG VERSION=main
+
+# Устанавливка пакетов
 RUN apt-get update && apt-get install -y python3 python3-venv python3-pip git \
     && rm -rf /var/lib/apt/lists/*
 
-# Задаём рабочую директорию
+# Задать рабочую директорию
 WORKDIR /app
 
-# Копируем файл зависимостей и ставим их
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Клонируем исходники StaticJinjaPlus с нужной версии
+RUN git clone https://github.com/apofiz2036/StaticJinjaPlus.git . \
+    && git checkout ${VERSION}
 
-# Теперь копируем остальной код
-COPY . .
+# Устанавливаем зависимости
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Запускаем
 CMD ["python3", "main.py"]
